@@ -107,7 +107,7 @@ func downloadNewVersion(c *gin.Context) {
 		return
 	}
 
-	fileName := fmt.Sprintf("uppercase_%s.wasm", requestedVersion)
+	fileName := fmt.Sprintf("obfuscate_%s.wasm", requestedVersion)
 	fmt.Println("filename: ", fileName)
 	filePath := filepath.Join(otaFilesPath, fileName)
 
