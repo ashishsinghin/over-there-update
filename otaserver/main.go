@@ -107,7 +107,8 @@ func downloadNewVersion(c *gin.Context) {
 		return
 	}
 
-	fileName := fmt.Sprintf("app_%s.wasm", requestedVersion)
+	fileName := fmt.Sprintf("uppercase_%s.wasm", requestedVersion)
+	fmt.Println("filename: ", fileName)
 	filePath := filepath.Join(otaFilesPath, fileName)
 
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
