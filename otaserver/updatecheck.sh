@@ -1,1 +1,1 @@
-curl http://localhost:8080/check-update?current_version=1.0.0
+curl http://$1:8080/check-update?current_version=1.0.0
