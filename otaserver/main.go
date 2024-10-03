@@ -120,6 +120,110 @@ func downloadNewVersion(c *gin.Context) {
 	c.File(filePath)
 }
 
+// Endpoint to check for a new version on one blink
+func checkForUpdateBlinkOne(c *gin.Context) {
+	currentVersion := c.Query("current_version")
+	if currentVersion == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "current_version is required"})
+		return
+	}
+
+	versions, err := getAvailableVersions()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch available versions"})
+		return
+	}
+
+	// Sort the versions to get the latest one
+	sort.Strings(versions)
+	latestVersion := versions[len(versions)-1]
+
+	if latestVersion > currentVersion {
+		downloadURL := fmt.Sprintf("/download-blink-one?version=%s", latestVersion)
+		c.JSON(http.StatusOK, VersionInfo{
+			LatestVersion: latestVersion,
+			DownloadURL:   downloadURL,
+		})
+	} else {
+		c.JSON(http.StatusOK, VersionInfo{
+			LatestVersion: latestVersion,
+		})
+	}
+}
+
+// Endpoint to download the new version file
+func downloadNewVersionBlinkOne(c *gin.Context) {
+	requestedVersion := c.Query("version")
+	if requestedVersion == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "version is required"})
+		return
+	}
+
+	fileName := fmt.Sprintf("one-second-delay_%s.wasm", requestedVersion)
+	fmt.Println("filename: ", fileName)
+	filePath := filepath.Join(otaFilesPath, fileName)
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "version not found"})
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+	c.File(filePath)
+}
+
+// Endpoint to check for a new version on one blink
+func checkForUpdateBlinkFive(c *gin.Context) {
+	currentVersion := c.Query("current_version")
+	if currentVersion == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "current_version is required"})
+		return
+	}
+
+	versions, err := getAvailableVersions()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch available versions"})
+		return
+	}
+
+	// Sort the versions to get the latest one
+	sort.Strings(versions)
+	latestVersion := versions[len(versions)-1]
+
+	if latestVersion > currentVersion {
+		downloadURL := fmt.Sprintf("/download-blink-five?version=%s", latestVersion)
+		c.JSON(http.StatusOK, VersionInfo{
+			LatestVersion: latestVersion,
+			DownloadURL:   downloadURL,
+		})
+	} else {
+		c.JSON(http.StatusOK, VersionInfo{
+			LatestVersion: latestVersion,
+		})
+	}
+}
+
+// Endpoint to download the new version file
+func downloadNewVersionBlinkFive(c *gin.Context) {
+	requestedVersion := c.Query("version")
+	if requestedVersion == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "version is required"})
+		return
+	}
+
+	fileName := fmt.Sprintf("five-second-delay_%s.wasm", requestedVersion)
+	fmt.Println("filename: ", fileName)
+	filePath := filepath.Join(otaFilesPath, fileName)
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "version not found"})
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+	c.File(filePath)
+}
+
 func main() {
 	router := gin.Default()
 
@@ -128,6 +232,18 @@ func main() {
 
 	// OTA file download endpoint
 	router.GET("/download", downloadNewVersion)
+
+	// OTA version check endpoint
+	router.GET("/check-update-blink-one", checkForUpdateBlinkOne)
+
+	// OTA file download endpoint
+	router.GET("/download-blink-one", downloadNewVersionBlinkOne)
+
+	// OTA version check endpoint
+	router.GET("/check-update-blink-five", checkForUpdateBlinkFive)
+
+	// OTA file download endpoint
+	router.GET("/download-blink-five", downloadNewVersionBlinkFive)
 
 	router.Run(":8080")
 }

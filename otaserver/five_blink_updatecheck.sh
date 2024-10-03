@@ -1,0 +1,1 @@
+curl http://localhost:8080/check-update-blink-five?current_version=1.0.0
