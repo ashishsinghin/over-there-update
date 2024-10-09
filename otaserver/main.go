@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crypto/sha256"
+	"crypto/md5"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -105,8 +105,8 @@ func CalculateChecksum(filePath string) (string, error) {
 	}
 	defer file.Close()
 
-	// Create a new SHA256 hash
-	hash := sha256.New()
+	// Create a new MD5 hash
+	hash := md5.New()
 
 	// Copy the file's content into the hash
 	if _, err := io.Copy(hash, file); err != nil {
