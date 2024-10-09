@@ -1,15 +1,15 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
-	"io"
 	"path/filepath"
 	"sort"
 	"strings"
-	"crypto/sha256"
-	"encoding/hex"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +17,7 @@ import (
 type VersionInfo struct {
 	LatestVersion string `json:"latest_version"`
 	DownloadURL   string `json:"download_url,omitempty"`
-	CheckSum   string `json:"checksum,omitempty"`
+	CheckSum      string `json:"checksum,omitempty"`
 }
 
 const otaFilesPath = "./ota_files/"
@@ -72,6 +72,7 @@ func checkForUpdate(c *gin.Context) {
 	latestVersion := versions[len(versions)-1]
 
 	fileName := fmt.Sprintf("plugin_%s.wasm", latestVersion)
+	fmt.Println(fileName)
 	filePath := filepath.Join(otaFilesPath, fileName)
 
 	// Calculate the checksum
@@ -86,7 +87,7 @@ func checkForUpdate(c *gin.Context) {
 		c.JSON(http.StatusOK, VersionInfo{
 			LatestVersion: latestVersion,
 			DownloadURL:   downloadURL,
-			CheckSum: checksum,
+			CheckSum:      checksum,
 		})
 	} else {
 		c.JSON(http.StatusOK, VersionInfo{
