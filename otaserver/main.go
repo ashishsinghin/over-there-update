@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"io"
 	"path/filepath"
 	"sort"
 	"strings"
