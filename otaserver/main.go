@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"crypto/sha256"
+	"encoding/hex"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +16,7 @@ import (
 type VersionInfo struct {
 	LatestVersion string `json:"latest_version"`
 	DownloadURL   string `json:"download_url,omitempty"`
+	CheckSum   string `json:"checksum,omitempty"`
 }
 
 const otaFilesPath = "./ota_files/"
@@ -67,17 +70,52 @@ func checkForUpdate(c *gin.Context) {
 	sort.Strings(versions)
 	latestVersion := versions[len(versions)-1]
 
+	fileName := fmt.Sprintf("plugin_%s.wasm", latestVersion)
+	filePath := filepath.Join(otaFilesPath, fileName)
+
+	// Calculate the checksum
+	checksum, err := CalculateChecksum(filePath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error calculating checksum"})
+		return
+	}
+
 	if latestVersion > currentVersion {
 		downloadURL := fmt.Sprintf("/download?version=%s", latestVersion)
 		c.JSON(http.StatusOK, VersionInfo{
 			LatestVersion: latestVersion,
 			DownloadURL:   downloadURL,
+			CheckSum: checksum,
 		})
 	} else {
 		c.JSON(http.StatusOK, VersionInfo{
 			LatestVersion: latestVersion,
 		})
 	}
+}
+
+// CalculateChecksum computes the SHA-256 checksum of a file.
+func CalculateChecksum(filePath string) (string, error) {
+	// Open the file
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	// Create a new SHA256 hash
+	hash := sha256.New()
+
+	// Copy the file's content into the hash
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", fmt.Errorf("failed to copy file data to hash: %w", err)
+	}
+
+	// Get the checksum as a byte slice and encode it as a hex string
+	checksum := hash.Sum(nil)
+	checksumHex := hex.EncodeToString(checksum)
+
+	return checksumHex, nil
 }
 
 // // Endpoint to download the new version file
@@ -107,7 +145,7 @@ func downloadNewVersion(c *gin.Context) {
 		return
 	}
 
-	fileName := fmt.Sprintf("obfuscate_%s.wasm", requestedVersion)
+	fileName := fmt.Sprintf("plugin_%s.wasm", requestedVersion)
 	fmt.Println("filename: ", fileName)
 	filePath := filepath.Join(otaFilesPath, fileName)
 
