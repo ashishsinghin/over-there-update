@@ -82,18 +82,13 @@ func checkForUpdate(c *gin.Context) {
 		return
 	}
 
-	if latestVersion > currentVersion {
-		downloadURL := fmt.Sprintf("/download?version=%s", latestVersion)
-		c.JSON(http.StatusOK, VersionInfo{
-			LatestVersion: latestVersion,
-			DownloadURL:   downloadURL,
-			CheckSum:      checksum,
-		})
-	} else {
-		c.JSON(http.StatusOK, VersionInfo{
-			LatestVersion: latestVersion,
-		})
-	}
+	downloadURL := fmt.Sprintf("/download?version=%s", latestVersion)
+	c.JSON(http.StatusOK, VersionInfo{
+		LatestVersion: latestVersion,
+		DownloadURL:   downloadURL,
+		CheckSum:      checksum,
+	})
+
 }
 
 // CalculateChecksum computes the SHA-256 checksum of a file.
