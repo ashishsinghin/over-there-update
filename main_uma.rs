@@ -314,8 +314,9 @@ async fn check_update_available() {
         if let Err(err) = update_plugin() {
             eprintln!("Error updating file: {}", err);
         }
+        println!("=========== Update sucessful ===========")
     } else {
-        println!("File Error");
+        println!("=========== Update failed! ===========");
     }
 }
 
@@ -368,16 +369,47 @@ fn fetch_parse_input() -> bool {
             return false
         }
     };
+    parse_input(data, ip_address)
+}
 
-    let latest_version = data["latest_version"].as_str().unwrap();
-    let download_url = data["download_url"].as_str().unwrap();
-    if !download_url.is_empty() {
-        match download_file(ip_address, latest_version) {
-            Ok(_) => (),
-            Err(err) => println!("Error downloading file: {}", err),
-        }
+fn parse_input(data: Value, ip_address: &str) -> bool {
+    let latest_version;
+    let has_latest_version = data.get("latest_version").and_then(|v| v.as_str()).is_some();
+    if has_latest_version {
+        latest_version = data["latest_version"].as_str().unwrap();
+        println!("Latest Version: {}", latest_version);
+    } else {
+        println!("Key 'latest_version' not found or is not a string");
+        return false
     }
-    let check_sum = data["checksum"].as_str().unwrap();
+  
+    let has_download_url = data.get("download_url").and_then(|v| v.as_str()).is_some();
+    if has_download_url {
+        let download_url = data["download_url"].as_str().unwrap();
+        if !download_url.is_empty() {
+            match download_file(ip_address, latest_version) {
+                Ok(_) => (),
+                Err(err) => println!("Error downloading file: {}", err),
+            }
+        } else {
+            println!("Download URL is empty");
+            return false
+        }
+
+    } else {
+        println!("Key 'download_url' not found or is not a string");
+        return false
+    }  
+
+    let check_sum;
+    let has_checksum = data.get("checksum").and_then(|v| v.as_str()).is_some();
+    if has_checksum {
+        check_sum = data["checksum"].as_str().unwrap();
+    } else {
+        println!("Key 'checksum' not found or is not a string");
+        return false
+    }
+
     let latest_file = capture_filename_from_header(ip_address, latest_version);
     if is_valid_input(check_sum, latest_file.as_str()) {
         if is_wasm_file(latest_file.as_str()) {
@@ -386,7 +418,7 @@ fn fetch_parse_input() -> bool {
             cleanup();
             return false
         }
-    } else { cleanup(); return false }
+    } else { cleanup(); return false }    
 }
 
 fn download_file(ip_address: &str, version: &str) -> Result<(), reqwest::Error> {
