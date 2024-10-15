@@ -246,7 +246,7 @@ fn main() -> Result<()> {
     let mut linker = Linker::<MyState>::new(&engine);
 
     Blink::add_to_linker(&mut linker, |state: &mut MyState| &mut state.host)?;
-
+    loop {
     // Read the guest component file.
     let plugins = get_plugins_from_path("../active")?;
     if plugins.is_empty() {
@@ -289,7 +289,7 @@ fn main() -> Result<()> {
             .sketch_embedded_run()
             .call_run(&mut store, led, delay)?;
     }
-    Ok(())
+    }
 }
 
 fn get_plugins_from_path(path: &str) -> anyhow::Result<Vec<PathBuf>> {
@@ -350,14 +350,14 @@ fn fetch_parse_input() -> bool {
         Ok(response) => response,
         Err(err) => {
             println!("Error fetching CHECK-UPDATE URL: {}", err);
-            return false;
+            return false
         }
     };
     let json_data = match response.text() {
         Ok(text) => text,
         Err(err) => {
             println!("Error parsing response: {}", err);
-            return false;
+            return false
         }
     };
     let json_data = json_data.trim();
@@ -365,14 +365,14 @@ fn fetch_parse_input() -> bool {
         Ok(data) => data,
         Err(err) => {
             println!("Error parsing JSON: {}", err);
-            return false;
+            return false
         }
     };
 
     let latest_version = data["latest_version"].as_str().unwrap();
     let download_url = data["download_url"].as_str().unwrap();
     if !download_url.is_empty() {
-        match download_file("localhost", latest_version) {
+        match download_file(ip_address, latest_version) {
             Ok(_) => (),
             Err(err) => println!("Error downloading file: {}", err),
         }
@@ -397,7 +397,7 @@ fn download_file(ip_address: &str, version: &str) -> Result<(), reqwest::Error> 
     let response = match reqwest::blocking::get(url) {
         Ok(response) => response,
         Err(err) => {
-            return Err(err);
+            return Err(err)
         }
     };
     if response.status().is_success() {
@@ -423,7 +423,7 @@ fn capture_filename_from_header(ip_address: &str, version: &str) -> String {
         Ok(response) => response,
         Err(err) => {
             println!("Error fetching URL: {}", err);
-            return "".to_string();
+            return "".to_string()
         }
     };
     let filename = response.headers().get("Content-Disposition").unwrap().to_str().unwrap();
